@@ -31,4 +31,5 @@ end
 -- Piece of code that runs the function in it's correct order. Already done.
 os.execute('mediainfo "'..arg[1]..'" >> temp.txt')
 jsonOutput(jsonprocessing(fileToArray("temp.txt")))
+os.execute('rm temp.txt')
 
