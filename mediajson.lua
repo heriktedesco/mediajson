@@ -1,6 +1,5 @@
 #!/usr/bin/env lua5.3
 --[[ AUXILIARY FUNCTIONS ]]--
---TODO: consertar indentaçao
 function removeJunkAtrib(rem)
     rem = string.sub(rem, 1, 42)
     rem = string.gsub(rem,":","")
@@ -15,22 +14,22 @@ function increaseIndex(x)
   return x
 end
 
---[[ MAIN FUNCTIONS ]]
+--[[ MAIN FUNCTIONS ]]--
 function fileToArray(arquivo, debug)
-        if debug == nil then debug = false end
-        assert(not(arquivo == nil), "Nenhum nome de arquivo foi informado para funcao fileToArray.")
-        arquivo = io.open(arquivo, "r")
-        assert(not(arquivo == nil), "Arquivo nao encontrado.")
-        resultado = {}
+    if debug == nil then debug = false end
+    assert(not(arquivo == nil), "Nenhum nome de arquivo foi informado para funcao fileToArray.")
+    arquivo = io.open(arquivo, "r")
+    assert(not(arquivo == nil), "Arquivo nao encontrado.")
+    resultado = {}
+    l = arquivo:read "*l"
+    while not(l == nil) do
+        table.insert(resultado, l)
         l = arquivo:read "*l"
-        while not(l == nil) do
-                table.insert(resultado, l)
-                l = arquivo:read "*l"
-        end
-        if debug then
-                for i, x in ipairs(resultado) do print(x) end
-        end
-        return resultado
+    end
+    if debug then
+        for i, x in ipairs(resultado) do print(x) end
+    end
+    return resultado
 end
 
 function jsonProcessing(inputArray)
@@ -63,6 +62,7 @@ function jsonProcessing(inputArray)
       end
       outputJsonG = string.sub(outputJsonG, 1, -1)
     end
+
     --[[ VIDEO SESSION CONVERSION ]]--
     if string.sub(inputArray[i], 1, 5) == "Video" then
       table.insert(atrib.video, "Name")
@@ -119,27 +119,29 @@ function jsonProcessing(inputArray)
       value.audio = {}
       value.other = {}
   end
-  -- codigo temporario
-
+  -- Necessary functions to format and concatenate the outputs into a valid JSON
   print(outputJsonG.."\n----------")
   print(outputJsonV.."\n----------")
   print(outputJsonA.."\n----------")
   print(outputJsonO.."\n----------")
 
 
-  -- lembrar de remover
+  -- Code isn't complete, remove line below after completion
   outputJson = "concluido"
-  --fim codigo temporario
   return outputJson
 end
 
 function jsonOutput(jsonString)
-    print("-INICIO-\n"..jsonString.."\n---FIM---")
-        -- Place here the piece of code that turns jsonString into a json file with the CODPROGRAMA_DESCRIPTION.json naming.
-        return -- Place here the boolean value point to successful json file creation
+    -- Place here the piece of code that turns jsonString into a json file with the CODPROGRAMA_DESCRIPTION.json naming.
+    return -- Place here the boolean value point to successful json file creation
 end
 
--- Piece of code that runs the function in it's correct order. Already done.
---os.execute('mediainfo "'..arg[1]..'" >> temp.txt')
-jsonOutput(jsonProcessing(fileToArray("mediainfo.txt")))
---os.execute('rm temp.txt')
+os.execute('mediainfo "'..arg[1]..'" >> temp.txt')
+isSuccessfull = jsonOutput(jsonProcessing(fileToArray("temp.txt")))
+os.execute('rm temp.txt')
+if isSuccessfull then
+    print("JSON creation completed")
+else
+    print("Some error happened when creating the file's JSON!")
+end
+return isSuccessfull
