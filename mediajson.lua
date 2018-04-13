@@ -150,16 +150,21 @@ function jsonProcessing(inputArray)
   outputJsonO = finishJsonFormOther('Other', outputJsonO)
 
   outputJson = outputJsonG .. outputJsonV .. outputJsonA .. outputJsonO
-  print(outputJson)
-
   return outputJson
 end
 
 function jsonOutput(jsonString)
-    -- Place here the piece of code that turns jsonString into a json file with the CODPROGRAMA_DESCRIPTION.json naming.
-    return true -- Place here the boolean value point to successful json file creation
-end
 
+  fileName = string.sub(arg[1], 1, -5)..'.json'
+  receiveJson = io.open(fileName, "w")
+  receiveJson:write(outputJson)
+  receiveJson:close()
+  if fileToArray(fileName) == nil then
+    return false
+  else
+    return true
+  end
+end
 
 os.execute('mediainfo "'..arg[1]..'" >> temp.txt')
 isSuccessfull = jsonOutput(jsonProcessing(fileToArray("temp.txt")))
