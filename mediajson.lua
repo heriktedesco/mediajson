@@ -14,6 +14,27 @@ function increaseIndex(x)
   return x
 end
 
+function finishJsonFormatting(dataType, data)
+  data = string.gsub(data, '\n"','\n\t\t\t"')
+  data = string.gsub(data, ',\n\t\t\t"Name"','\n\t\t},\n\t\t{\n\t\t\t"Name"')
+  data = string.sub(data, 1, -2)
+  data = '\n\t"'..dataType..'":\n\t\t[{'..data..'\n\t\t}],'
+  return data
+end
+
+function finishJsonFormOther(dataType, data)
+  data = string.gsub(data, '\n"','\n\t\t\t"')
+  data = string.sub(data, 1, -2)
+  data = '\n\t"'..dataType..'":\n\t\t[{'..data..'\n\t\t}]\n}'
+  return data
+end
+
+function finishJsonFormGeneral(data)
+  data = string.gsub("{".. data, '\n"','\n\t"')
+  data = string.sub(data, 1, -1)
+  return data
+end
+
 --[[ MAIN FUNCTIONS ]]--
 function fileToArray(arquivo, debug)
     if debug == nil then debug = false end
@@ -77,7 +98,7 @@ function jsonProcessing(inputArray)
         outputJsonV = outputJsonV..'\n"'..atrib.video[i]..'":"'..value.video[i]..'",'
       end
       outputJsonV = string.sub(outputJsonV, 1, -1)
-      contVideo = contVideo + 1
+      contVideo = increaseIndex(contVideo)
     end
 
     --[[ AUDIO SESSION CONVERSION ]]--
@@ -94,18 +115,21 @@ function jsonProcessing(inputArray)
         outputJsonA = outputJsonA..'\n"'..atrib.audio[i]..'":"'..value.audio[i]..'",'
       end
       outputJsonA = string.sub(outputJsonA, 1, -1)
-      contAudio = contAudio + 1
+      contAudio = increaseIndex(contAudio)
     end
 
     --[[ OTHER SESSION CONVERSION ]]--
     if inputArray[i] == "Other" then
-      while not(inputArray[i] == "") do
+      i = increaseIndex(i)
+      while not(inputArray[i] == nil) do
         table.insert(atrib.other, removeJunkAtrib(inputArray[i]))
         table.insert(value.other, string.sub(inputArray[i], 44, -1))
         i = increaseIndex(i)
       end
       for i in ipairs(atrib.other) do
-        outputJsonO = outputJsonO..'\n"'..atrib.other[i]..'":"'..value.other[i]..'",'
+        if not(atrib.other[i] == '') then
+          outputJsonO = outputJsonO..'\n"'..atrib.other[i]..'":"'..value.other[i]..'",'
+        end
       end
       outputJsonO = string.sub(outputJsonO, 1, -1)
     end
@@ -119,22 +143,23 @@ function jsonProcessing(inputArray)
       value.audio = {}
       value.other = {}
   end
-  -- Necessary functions to format and concatenate the outputs into a valid JSON
-  print(outputJsonG.."\n----------")
-  print(outputJsonV.."\n----------")
-  print(outputJsonA.."\n----------")
-  print(outputJsonO.."\n----------")
 
+  outputJsonG = finishJsonFormGeneral(outputJsonG)
+  outputJsonV = finishJsonFormatting('Video', outputJsonV)
+  outputJsonA = finishJsonFormatting('Audio', outputJsonA)
+  outputJsonO = finishJsonFormOther('Other', outputJsonO)
 
-  -- Code isn't complete, remove line below after completion
-  outputJson = "concluido"
+  outputJson = outputJsonG .. outputJsonV .. outputJsonA .. outputJsonO
+  print(outputJson)
+
   return outputJson
 end
 
 function jsonOutput(jsonString)
     -- Place here the piece of code that turns jsonString into a json file with the CODPROGRAMA_DESCRIPTION.json naming.
-    return -- Place here the boolean value point to successful json file creation
+    return true -- Place here the boolean value point to successful json file creation
 end
+
 
 os.execute('mediainfo "'..arg[1]..'" >> temp.txt')
 isSuccessfull = jsonOutput(jsonProcessing(fileToArray("temp.txt")))
