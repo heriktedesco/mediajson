@@ -1,8 +1,7 @@
 #!/usr/bin/env lua5.3
 --[[ AUXILIARY FUNCTIONS ]]--
 function removeJunkAtrib(rem)
-    rem = string.sub(rem, 1, 42)
-    rem = string.gsub(rem,":","")
+    rem = string.sub(rem, 1, 41)
     while string.sub(rem,-1,-1) == " " do
       rem = string.sub(rem,1,-2)
     end
@@ -10,29 +9,19 @@ function removeJunkAtrib(rem)
 end
 
 function increaseIndex(x)
-  x = x + 1
-  return x
+  return x + 1
 end
 
 function finishJsonFormatting(dataType, data)
-  data = string.gsub(data, '\n"','\n\t\t\t"')
-  data = string.gsub(data, ',\n\t\t\t"Name"','\n\t\t},\n\t\t{\n\t\t\t"Name"')
-  data = string.sub(data, 1, -2)
-  data = '\n\t"'..dataType..'":\n\t\t[{'..data..'\n\t\t}],'
-  return data
+  return '\n\t"'..dataType..'":\n\t\t[{'..string.sub(string.gsub(string.gsub(data, '\n"','\n\t\t\t"'), ',\n\t\t\t"Name"','\n\t\t},\n\t\t{\n\t\t\t"Name"'), 1, -2)..'\n\t\t}],'
 end
 
-function finishJsonFormOther(dataType, data)
-  data = string.gsub(data, '\n"','\n\t\t\t"')
-  data = string.sub(data, 1, -2)
-  data = '\n\t"'..dataType..'":\n\t\t[{'..data..'\n\t\t}]\n}'
-  return data
+function finishJsonFormOther(data)
+  return '\n\t"'..'Other'..'":\n\t\t[{'..string.sub(string.gsub(data, '\n"','\n\t\t\t"'), 1, -2)..'\n\t\t}]\n}'
 end
 
 function finishJsonFormGeneral(data)
-  data = string.gsub("{".. data, '\n"','\n\t"')
-  data = string.sub(data, 1, -1)
-  return data
+  return string.gsub("{".. data, '\n"','\n\t"')
 end
 
 --[[ MAIN FUNCTIONS ]]--
@@ -47,9 +36,7 @@ function fileToArray(arquivo, debug)
         table.insert(resultado, l)
         l = arquivo:read "*l"
     end
-    if debug then
-        for i, x in ipairs(resultado) do print(x) end
-    end
+    arquivo:close()
     return resultado
 end
 
@@ -81,7 +68,6 @@ function jsonProcessing(inputArray)
       for i in ipairs(atrib) do
         outputJsonG = outputJsonG..'\n"'..atrib[i]..'":"'..value[i]..'",'
       end
-      outputJsonG = string.sub(outputJsonG, 1, -1)
     end
 
     --[[ VIDEO SESSION CONVERSION ]]--
@@ -97,7 +83,6 @@ function jsonProcessing(inputArray)
       for i in ipairs(atrib.video) do
         outputJsonV = outputJsonV..'\n"'..atrib.video[i]..'":"'..value.video[i]..'",'
       end
-      outputJsonV = string.sub(outputJsonV, 1, -1)
       contVideo = increaseIndex(contVideo)
     end
 
@@ -114,7 +99,6 @@ function jsonProcessing(inputArray)
       for i in ipairs(atrib.audio) do
         outputJsonA = outputJsonA..'\n"'..atrib.audio[i]..'":"'..value.audio[i]..'",'
       end
-      outputJsonA = string.sub(outputJsonA, 1, -1)
       contAudio = increaseIndex(contAudio)
     end
 
@@ -131,7 +115,6 @@ function jsonProcessing(inputArray)
           outputJsonO = outputJsonO..'\n"'..atrib.other[i]..'":"'..value.other[i]..'",'
         end
       end
-      outputJsonO = string.sub(outputJsonO, 1, -1)
     end
 
     atrib = {}
@@ -143,21 +126,14 @@ function jsonProcessing(inputArray)
       value.audio = {}
       value.other = {}
   end
-
-  outputJsonG = finishJsonFormGeneral(outputJsonG)
-  outputJsonV = finishJsonFormatting('Video', outputJsonV)
-  outputJsonA = finishJsonFormatting('Audio', outputJsonA)
-  outputJsonO = finishJsonFormOther('Other', outputJsonO)
-
-  outputJson = outputJsonG .. outputJsonV .. outputJsonA .. outputJsonO
-  return outputJson
+  return finishJsonFormGeneral(outputJsonG)..finishJsonFormatting('Video', outputJsonV)..finishJsonFormatting('Audio', outputJsonA)..finishJsonFormOther(outputJsonO)
 end
 
 function jsonOutput(jsonString)
 
   fileName = string.sub(arg[1], 1, -5)..'.json'
   receiveJson = io.open(fileName, "w")
-  receiveJson:write(outputJson)
+  receiveJson:write(jsonString)
   receiveJson:close()
   if fileToArray(fileName) == nil then
     return false
@@ -166,12 +142,14 @@ function jsonOutput(jsonString)
   end
 end
 
-os.execute('mediainfo "'..arg[1]..'" >> temp.txt')
-isSuccessfull = jsonOutput(jsonProcessing(fileToArray("temp.txt")))
-os.execute('rm temp.txt')
+tempFile = string.sub(arg[1], 1, -5)..'.temp'
+os.execute('mediainfo "'..arg[1]..'" >> "'..tempFile..'"')
+isSuccessfull = jsonOutput(jsonProcessing(fileToArray(tempFile)))
+os.execute('rm "'..tempFile..'"')
 if isSuccessfull then
     print("JSON creation completed")
+    return 1
 else
     print("Some error happened when creating the file's JSON!")
+    return 0
 end
-return isSuccessfull
