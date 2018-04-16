@@ -40,7 +40,7 @@ function fileToArray(arquivo, debug)
     return resultado
 end
 
-function jsonProcessing(inputArray)
+function jsonProcessing(inputArray, nomeArquivo, lto)
   atrib = {}
     atrib.video = {}
     atrib.audio = {}
@@ -68,6 +68,8 @@ function jsonProcessing(inputArray)
       for i in ipairs(atrib) do
         outputJsonG = outputJsonG..'\n"'..atrib[i]..'":"'..value[i]..'",'
       end
+        outputJsonG = outputJsonG..'\n"Codigo de Programa": "'..string.sub(nomeArquivo, 1, 7)..'",'
+        outputJsonG = outputJsonG..'\n"TAPE Number": "'..lto..'",'
     end
 
     --[[ VIDEO SESSION CONVERSION ]]--
@@ -142,9 +144,11 @@ function jsonOutput(jsonString)
   end
 end
 
+assert(not(arg[1] == nil), "Name of the Movie not mentioned in the script arguments! Aborting...")
+assert(not(arg[2] == nil), "Name of the Destination Tape not mentioned in the script arguments! Aborting...")
 tempFile = string.sub(arg[1], 1, -5)..'.temp'
 os.execute('mediainfo "'..arg[1]..'" >> "'..tempFile..'"')
-isSuccessfull = jsonOutput(jsonProcessing(fileToArray(tempFile)))
+isSuccessfull = jsonOutput(jsonProcessing(fileToArray(tempFile), arg[1], arg[2]))
 os.execute('rm "'..tempFile..'"')
 if isSuccessfull then
     print("JSON creation completed")
