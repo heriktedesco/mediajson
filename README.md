@@ -6,7 +6,7 @@ MediaJson is a Lua script aiming to expand the functionality of the free version
 
 Usage: 
 ```
-$mediajson Video\ file\ with\ spaces.mov
+$mediajson Video\ file\ with\ spaces.mov LTO\ TYPE\ number
 ```
 
 This Project is in development by [Herik Tedesco](https://github.com/heriktedesco) as part of it's internship at [Tesserato Tecnologia e Vídeo](https://www.linkedin.com/company/tesserato/), under the direct supervision of [Gustavo H. M. Silva](https://github.com/gustavohmsilva).   
