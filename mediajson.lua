@@ -161,14 +161,17 @@ function jsonProcessing(inputArray, nomeArquivo, lto)
 end
 
 function jsonOutput(jsonString, subFile, flagDir)
-  if flagDir then
-    fileName = string.sub(arg[1], 1, -2)..' '..tostring(subFile)..'.json'
-  else
-    fileName = string.sub(arg[1], 1, -5)..'.json'
+  for i = arg[1]:len(), 1, -1 do
+    if arg[1]:sub(i,i) == '.' then
+      _ = i
+      break
+    end
   end
 
-  if not(string.sub(arg[1], -1 , -1) == "/") then
-    fileName = arg[1]..' '..tostring(subFile)..'.json'
+  if not subFile then
+    fileName = arg[1]:sub(1,_).."json"
+  else
+    fileName = arg[1]:sub(1, -2).." - arquivo "..subFile..".json"
   end
   receiveJson = io.open(fileName, "w")
   receiveJson:write(jsonString)
